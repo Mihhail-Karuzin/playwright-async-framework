@@ -1,0 +1,56 @@
+name: Playwright Async Framework CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        browser: [ chromium, firefox, webkit ]
+        headless: [ true ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install allure-pytest pytest-xdist
+
+    - name: Run tests
+      run: |
+        pytest -n auto --browser=${{ matrix.browser }} --headless=${{ matrix.headless }}
+
+    - name: Upload Allure Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: allure-results-${{ matrix.browser }}
+        path: artifacts/allure-results/
+
+    - name: Generate Allure HTML Report
+      if: always()
+      run: |
+        pip install allure-commandline
+        allure generate artifacts/allure-results -o allure-report || true
+        zip -r allure-report-${{ matrix.browser }}.zip allure-report
+      shell: bash
+
+    - name: Upload Allure HTML artifact
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: allure-report-html-${{ matrix.browser }}
+        path: allure-report-${{ matrix.browser }}.zip

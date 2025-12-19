@@ -1,7 +1,16 @@
 # config/settings.py
+
 class Settings:
-    BASE_URL = "https://playwright.dev"
-    BROWSER = "chromium"      # Можно "chromium", "firefox" или "webkit"
-    HEADLESS = False          # False — видимый браузер, True — без интерфейса
-    WINDOW_SIZE = {"width": 1280, "height": 720}
-    DEFAULT_TIMEOUT = 5000
+    # Base URL of the application under test
+    BASE_URL: str = "https://www.saucedemo.com"
+
+    # Default browser settings
+    HEADLESS: bool = False           # whether to run browser in headless mode
+    WINDOW_SIZE: tuple | None = None # e.g. (1920, 1080) or None to use default
+
+    # Timeouts (in milliseconds) or other global timeouts
+    TIMEOUT: int = 30000             # 30 seconds as default timeout for page operations
+
+    # (Add more global settings if needed)
+
+

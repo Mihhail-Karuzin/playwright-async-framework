@@ -1,50 +1,31 @@
-# ─── Python / byte-code / build artifacts ───
+# Python cache files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so  # скомпилированные расширения
-*.egg-info/
-dist/
-build/
-*.egg
-*.manifest
-*.spec
 
-# ─── Виртуальное окружение, локальные env, локальные папки зависимостей ───
+# Virtual environments
 .venv/
 venv/
-env/
 ENV/
-*.env
+env/
 
-# ─── Кэш, логи, временные файлы, отчёты тестов ───
+# Pytest cache
 .pytest_cache/
-pytest_cache/
-*.log
-*.tmp
-*.temp
-*.cache
-*.coverage
+.cache/
 
-# ─── IDE / редакторы / OS-файлы ───
-# PyCharm / IntelliJ / JetBrains
+# Logs and reports
+*.log
+reports/
+screenshots/
+
+# IDE / editor files
 .idea/
-*.iml
-# VS Code
 .vscode/
-# macOS / Windows временные метки
+*.iml
+
+# OS files
 .DS_Store
 Thumbs.db
-Desktop.ini
 
-# ─── Скриншоты и артефакты тестов / временные выходы ───
-Screenshot/
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.mp4
 
-# ─── Дополнительно: файлы, которые могут содержать приватные ключи, конфигурации, пароли и др. ───
-*.env.local
-local_settings.py
+
