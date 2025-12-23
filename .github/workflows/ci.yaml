@@ -40,11 +40,18 @@ jobs:
         name: allure-results-${{ matrix.browser }}
         path: artifacts/allure-results/
 
+    - name: Install Allure CLI
+      if: always()
+      run: |
+        wget https://github.com/allure-framework/allure2/releases/download/2.22.2/allure-2.22.2.zip
+        unzip allure-2.22.2.zip -d allure
+        chmod +x allure/bin/allure
+        export PATH=$PWD/allure/bin:$PATH
+
     - name: Generate Allure HTML Report
       if: always()
       run: |
-        pip install allure-commandline
-        allure generate artifacts/allure-results -o allure-report || true
+        allure/bin/allure generate artifacts/allure-results -o allure-report || true
         zip -r allure-report-${{ matrix.browser }}.zip allure-report
       shell: bash
 
