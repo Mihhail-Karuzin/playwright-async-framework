@@ -35,7 +35,7 @@ jobs:
         pytest -n auto --browser=${{ matrix.browser }} --headless=${{ matrix.headless }}
 
     - name: Upload Allure Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: allure-results-${{ matrix.browser }}
         path: artifacts/allure-results/
@@ -50,7 +50,8 @@ jobs:
 
     - name: Upload Allure HTML artifact
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: allure-report-html-${{ matrix.browser }}
         path: allure-report-${{ matrix.browser }}.zip
+
