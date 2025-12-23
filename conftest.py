@@ -1,5 +1,4 @@
 # conftest.py
-
 import os
 from datetime import datetime
 
@@ -11,34 +10,37 @@ from config.settings import Settings
 
 def pytest_addoption(parser):
     """
-    Add custom CLI options:
-    --browser: chromium, firefox, webkit
-    --headless: true/false
+    Register custom CLI options:
+      --browser: chromium/firefox/webkit
+      --headless: True/False
     """
     parser.addoption(
         "--browser",
         action="store",
         default="chromium",
-        help="Browser to run tests on: chromium, firefox, webkit"
+        help="Browser to run tests on (chromium, firefox, webkit)"
     )
+
     parser.addoption(
         "--headless",
         action="store",
         default="True",
-        help="Headless mode: True or False"
+        help="Run tests in headless mode"
     )
 
 
 @pytest_asyncio.fixture
 async def page(request):
     """
-    Creates browser page based on CLI options
+    Provide a Playwright page object from the given browser.
     """
+
     browser_name = request.config.getoption("--browser").lower()
     headless_flag = request.config.getoption("--headless").lower() == "true"
 
     async with async_playwright() as p:
         browser = None
+
         if browser_name == "chromium":
             browser = await p.chromium.launch(headless=headless_flag)
         elif browser_name == "firefox":
@@ -49,8 +51,9 @@ async def page(request):
             raise ValueError(f"Unsupported browser: {browser_name}")
 
         context = await browser.new_context()
-        page = await context.new_page()
-        yield page
+        page_obj = await context.new_page()
+
+        yield page_obj
 
         await browser.close()
 
@@ -58,7 +61,7 @@ async def page(request):
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    Screenshot-on-failure hook
+    Take screenshot on failure.
     """
     outcome = yield
     rep = outcome.get_result()
@@ -74,8 +77,10 @@ def pytest_runtest_makereport(item, call):
             screenshot_file = f"{screenshots_dir}/{test_name}_{timestamp}.png"
 
             import asyncio
+
             loop = asyncio.get_event_loop()
             loop.run_until_complete(page.screenshot(path=screenshot_file))
+
 
 
 
