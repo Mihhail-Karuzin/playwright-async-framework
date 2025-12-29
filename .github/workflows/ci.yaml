@@ -26,11 +26,17 @@ jobs:
     - name: Install dependencies + Playwright browsers
       run: |
         python -m pip install --upgrade pip
+
+        # Install project dependencies
         pip install -r requirements.txt
-        pip install allure-pytest pytest-xdist pytest-playwright
+
+        # Install required plugins for testing
+        pip install pytest-playwright pytest-xdist allure-pytest
+
+        # Install Playwright library
         pip install playwright
 
-        # Установка браузеров Playwright
+        # 📌 IMPORTANT: install browser binaries for Playwright
         npx playwright install --with-deps
 
     - name: Run tests
@@ -63,4 +69,5 @@ jobs:
       with:
         name: allure-report-html-${{ matrix.browser }}
         path: allure-report-${{ matrix.browser }}.zip
+
 
