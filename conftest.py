@@ -1,4 +1,5 @@
 # conftest.py
+
 import os
 from datetime import datetime
 
@@ -8,51 +9,31 @@ from playwright.async_api import async_playwright
 from config.settings import Settings
 
 
-def pytest_addoption(parser):
-    """
-    Register custom CLI options:
-      --browser: chromium/firefox/webkit
-      --headless: True/False
-    """
-    parser.addoption(
-        "--browser",
-        action="store",
-        default="chromium",
-        help="Browser to run tests on (chromium, firefox, webkit)"
-    )
-
-    parser.addoption(
-        "--headless",
-        action="store",
-        default="True",
-        help="Run tests in headless mode"
-    )
-
-
 @pytest_asyncio.fixture
 async def page(request):
     """
-    Provide a Playwright page object from the given browser.
+    Provide a Playwright Page object for tests.
+    Uses built-in pytest-playwright --browser option.
     """
 
-    browser_name = request.config.getoption("--browser").lower()
-    headless_flag = request.config.getoption("--headless").lower() == "true"
+    # pytest-playwright supplies a "browser" fixture automatically,
+    # but we can still control headless via Settings or skip custom options.
+    browser_name = request.config.getoption("browser", default="chromium")
 
     async with async_playwright() as p:
         browser = None
 
         if browser_name == "chromium":
-            browser = await p.chromium.launch(headless=headless_flag)
+            browser = await p.chromium.launch(headless=Settings.HEADLESS)
         elif browser_name == "firefox":
-            browser = await p.firefox.launch(headless=headless_flag)
+            browser = await p.firefox.launch(headless=Settings.HEADLESS)
         elif browser_name == "webkit":
-            browser = await p.webkit.launch(headless=headless_flag)
+            browser = await p.webkit.launch(headless=Settings.HEADLESS)
         else:
             raise ValueError(f"Unsupported browser: {browser_name}")
 
         context = await browser.new_context()
         page_obj = await context.new_page()
-
         yield page_obj
 
         await browser.close()
@@ -61,11 +42,12 @@ async def page(request):
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    Take screenshot on failure.
+    Take a screenshot on failure.
     """
     outcome = yield
     rep = outcome.get_result()
 
+    # Only capture screenshot on test failure
     if rep.when == "call" and rep.failed:
         page = item.funcargs.get("page")
         if page:
@@ -80,6 +62,7 @@ def pytest_runtest_makereport(item, call):
 
             loop = asyncio.get_event_loop()
             loop.run_until_complete(page.screenshot(path=screenshot_file))
+
 
 
 
