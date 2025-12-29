@@ -29,6 +29,8 @@ jobs:
         pip install -r requirements.txt
         pip install allure-pytest pytest-xdist pytest-playwright
         pip install playwright
+
+        # Установка браузеров Playwright
         npx playwright install --with-deps
 
     - name: Run tests
