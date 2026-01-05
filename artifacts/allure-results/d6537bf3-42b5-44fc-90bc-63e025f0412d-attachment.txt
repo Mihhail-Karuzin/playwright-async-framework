@@ -1,0 +1,14 @@
+[32mINFO    [0m LoginPage:base_page.py:13 Navigating to URL: https://www.saucedemo.com
+[32mINFO    [0m LoginPage:base_page.py:30 Filling input with text: standard_user
+[32mINFO    [0m LoginPage:base_page.py:21 Waiting for locator to be visible
+[32mINFO    [0m LoginPage:base_page.py:30 Filling input with text: secret_sauce
+[32mINFO    [0m LoginPage:base_page.py:21 Waiting for locator to be visible
+[32mINFO    [0m LoginPage:base_page.py:25 Clicking on element
+[32mINFO    [0m LoginPage:base_page.py:21 Waiting for locator to be visible
+[32mINFO    [0m InventoryPage:base_page.py:17 Waiting for URL to contain: /inventory.html
+[32mINFO    [0m InventoryPage:base_page.py:21 Waiting for locator to be visible
+[32mINFO    [0m InventoryPage:base_page.py:25 Clicking on element
+[32mINFO    [0m InventoryPage:base_page.py:21 Waiting for locator to be visible
+[32mINFO    [0m InventoryPage:base_page.py:25 Clicking on element
+[32mINFO    [0m InventoryPage:base_page.py:21 Waiting for locator to be visible
+[32mINFO    [0m CartPage:base_page.py:21 Waiting for locator to be visible

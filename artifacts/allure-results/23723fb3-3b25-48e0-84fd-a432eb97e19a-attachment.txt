@@ -1,0 +1,8 @@
+2025-12-29 10:11:28,135 | INFO | LoginPage | Navigating to URL: https://www.saucedemo.com
+2025-12-29 10:11:28,797 | INFO | LoginPage | Filling input with text: wrong_user
+2025-12-29 10:11:28,797 | INFO | LoginPage | Waiting for locator to be visible
+2025-12-29 10:11:28,903 | INFO | LoginPage | Filling input with text: wrong_pass
+2025-12-29 10:11:28,904 | INFO | LoginPage | Waiting for locator to be visible
+2025-12-29 10:11:28,948 | INFO | LoginPage | Clicking on element
+2025-12-29 10:11:28,949 | INFO | LoginPage | Waiting for locator to be visible
+2025-12-29 10:11:29,067 | INFO | LoginPage | Element visible: True

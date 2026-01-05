@@ -1,0 +1,14 @@
+2025-12-29 10:11:10,752 | INFO | LoginPage | Navigating to URL: https://www.saucedemo.com
+2025-12-29 10:11:12,400 | INFO | LoginPage | Filling input with text: standard_user
+2025-12-29 10:11:12,400 | INFO | LoginPage | Waiting for locator to be visible
+2025-12-29 10:11:12,503 | INFO | LoginPage | Filling input with text: secret_sauce
+2025-12-29 10:11:12,504 | INFO | LoginPage | Waiting for locator to be visible
+2025-12-29 10:11:12,540 | INFO | LoginPage | Clicking on element
+2025-12-29 10:11:12,540 | INFO | LoginPage | Waiting for locator to be visible
+2025-12-29 10:11:12,708 | INFO | InventoryPage | Waiting for URL to contain: /inventory.html
+2025-12-29 10:11:12,741 | INFO | InventoryPage | Waiting for locator to be visible
+2025-12-29 10:11:12,757 | INFO | InventoryPage | Clicking on element
+2025-12-29 10:11:12,757 | INFO | InventoryPage | Waiting for locator to be visible
+2025-12-29 10:11:12,821 | INFO | InventoryPage | Clicking on element
+2025-12-29 10:11:12,821 | INFO | InventoryPage | Waiting for locator to be visible
+2025-12-29 10:11:12,926 | INFO | CartPage | Waiting for locator to be visible

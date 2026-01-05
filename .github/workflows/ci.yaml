@@ -15,18 +15,23 @@ jobs:
         browser: [ chromium, firefox, webkit ]
 
     steps:
-
-    # --- 1) Checkout code ---
+    ########################################
+    # 1) Checkout repository
+    ########################################
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # --- 2) Set up Python ---
+    ########################################
+    # 2) Set up Python
+    ########################################
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
 
-    # --- 3) Install dependencies & Playwright browsers ---
+    ########################################
+    # 3) Install dependencies + Playwright browsers
+    ########################################
     - name: Install dependencies + Playwright browsers
       run: |
         python -m pip install --upgrade pip
@@ -34,18 +39,24 @@ jobs:
         pip install pytest-playwright pytest-xdist allure-pytest
         pip install playwright
 
-        # 📌 Important: install browsers for CI
+        # 📌 Устанавливаем Playwright браузеры + системные зависимости
         python -m playwright install --with-deps
       shell: bash
 
-    # --- 4) Run tests ---
+    ########################################
+    # 4) Run tests (headless via environment variable)
+    ########################################
     - name: Run tests
+      env:
+        # 📌 Гарантируем headless режим для всех браузеров в CI
+        PW_HEADLESS: 1
       run: |
-        # ❗ DO NOT use --headless here — pytest-playwright does not recognise it
         pytest -n auto --browser=${{ matrix.browser }}
       shell: bash
 
-    # --- 5) Upload Allure raw results ---
+    ########################################
+    # 5) Upload Allure raw results
+    ########################################
     - name: Upload Allure Results
       if: always()
       uses: actions/upload-artifact@v4
@@ -53,34 +64,49 @@ jobs:
         name: allure-results-${{ matrix.browser }}
         path: artifacts/allure-results/
 
-    # --- 6) Install Allure CLI manually ---
+    ########################################
+    # 6) Install Allure CLI manually
+    ########################################
     - name: Install Allure CLI
       if: always()
       run: |
+        # 📌 Скачиваем Allure CLI
         wget https://github.com/allure-framework/allure2/releases/download/2.22.2/allure-2.22.2.zip
+
+        # 📌 Распаковываем в папку ./allure
         unzip allure-2.22.2.zip -d allure
+
+        # 📌 Делаем бинарник исполняемым
         chmod +x allure/bin/allure
 
-        # Add allure to path
+        # 📌 Добавляем Allure CLI в PATH
         echo "ALLURE_HOME=$PWD/allure" >> $GITHUB_ENV
         echo "$PWD/allure/bin" >> $GITHUB_PATH
       shell: bash
 
-    # --- 7) Generate Allure HTML report ---
+    ########################################
+    # 7) Generate Allure HTML Report
+    ########################################
     - name: Generate Allure Report
       if: always()
       run: |
+        # 📌 Генерируем HTML Allure отчёт
         allure generate artifacts/allure-results --clean -o allure-report || true
+
+        # 📌 Упаковываем HTML отчёт в ZIP
         zip -r allure-report-${{ matrix.browser }}.zip allure-report
       shell: bash
 
-    # --- 8) Upload HTML report as artifact ---
+    ########################################
+    # 8) Upload HTML report as artifact
+    ########################################
     - name: Upload Allure HTML artifact
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: allure-report-html-${{ matrix.browser }}
         path: allure-report-${{ matrix.browser }}.zip
+
 
 
 
