@@ -26,6 +26,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest-xdist allure-pytest
           playwright install
 
       - name: Run tests
@@ -39,8 +40,8 @@ jobs:
 
       - name: Generate Allure Report
         run: |
-          pip install allure-pytest
           allure generate artifacts/allure-results --clean -o artifacts/allure-report
+
 
 
 

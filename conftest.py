@@ -13,11 +13,9 @@ from config.settings import Settings
 async def page(request):
     """
     Provide a Playwright Page object for tests.
-    Handles browser_name as list or string (GitHub Actions may pass it as ['chromium']).
+    Handles browser_name as list or string.
     """
-
-    # Получаем опцию browser из pytest-playwright, дефолт "chromium"
-    browser_option = getattr(request.config.option, "browser", "chromium")
+    browser_option = getattr(request.config, "browser", "chromium")
 
     # Если это список, берем первый элемент
     if isinstance(browser_option, (list, tuple)):
@@ -26,8 +24,9 @@ async def page(request):
         browser_name = browser_option
 
     async with async_playwright() as p:
+        browser = None
         if browser_name.lower() == "chromium":
-            browser = await p.chromium.launch(headless=Settings.HEADLESS, args=["--no-sandbox"])
+            browser = await p.chromium.launch(headless=Settings.HEADLESS)
         elif browser_name.lower() == "firefox":
             browser = await p.firefox.launch(headless=Settings.HEADLESS)
         elif browser_name.lower() == "webkit":
@@ -37,9 +36,7 @@ async def page(request):
 
         context = await browser.new_context()
         page_obj = await context.new_page()
-
         yield page_obj
-
         await browser.close()
 
 
@@ -50,7 +47,6 @@ def pytest_runtest_makereport(item, call):
     """
     outcome = yield
     rep = outcome.get_result()
-
     if rep.when == "call" and rep.failed:
         page = item.funcargs.get("page")
         if page:
@@ -59,10 +55,8 @@ def pytest_runtest_makereport(item, call):
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             test_name = item.name
             screenshot_file = f"{screenshots_dir}/{test_name}_{timestamp}.png"
-
             import asyncio
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(page.screenshot(path=screenshot_file))
+            asyncio.get_event_loop().run_until_complete(page.screenshot(path=screenshot_file))
 
 
 
