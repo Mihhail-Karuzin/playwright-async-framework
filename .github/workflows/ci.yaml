@@ -16,53 +16,41 @@ jobs:
 
     steps:
 
-    # ───────────────────────────────────────────────────────────────────
-    # 1) Checkout code
-    # ───────────────────────────────────────────────────────────────────
+    # 1) Checkout repository
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # ───────────────────────────────────────────────────────────────────
     # 2) Setup Python
-    # ───────────────────────────────────────────────────────────────────
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
 
-    # ───────────────────────────────────────────────────────────────────
     # 3) Install dependencies + Playwright browsers
-    # ───────────────────────────────────────────────────────────────────
     - name: Install dependencies + Playwright browsers
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-playwright pytest-xdist allure-pytest
         pip install playwright
-
-        # Install all Playwright browsers globally
         python -m playwright install --with-deps
       shell: bash
 
-    # ───────────────────────────────────────────────────────────────────
     # 4) Run tests in headless / xvfb mode
-    # ───────────────────────────────────────────────────────────────────
     - name: Run tests
       env:
-        PLAYWRIGHT_HEADLESS: true  # все браузеры по умолчанию headless
+        PLAYWRIGHT_HEADLESS: true
+        PLAYWRIGHT_BROWSERS_PATH: '0'
+        PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
       run: |
         if [ "${{ matrix.browser }}" = "webkit" ] || [ "${{ matrix.browser }}" = "firefox" ]; then
-          # WebKit и Firefox могут падать в CI даже в headless, используем xvfb
-          xvfb-run -a pytest -n auto --browser=${{ matrix.browser }}
+          xvfb-run -a pytest -n auto
         else
-          # Chromium стабильно в headless + отключаем sandbox для CI
-          pytest -n auto --browser=${{ matrix.browser }} -- --browser-args="--no-sandbox"
+          pytest -n auto --browser-args="--no-sandbox"
         fi
       shell: bash
 
-    # ───────────────────────────────────────────────────────────────────
     # 5) Upload raw Allure results
-    # ───────────────────────────────────────────────────────────────────
     - name: Upload Allure Results
       if: always()
       uses: actions/upload-artifact@v4
@@ -70,23 +58,17 @@ jobs:
         name: allure-results-${{ matrix.browser }}
         path: artifacts/allure-results/
 
-    # ───────────────────────────────────────────────────────────────────
     # 6) Install Allure CLI
-    # ───────────────────────────────────────────────────────────────────
     - name: Install Allure CLI
       if: always()
       run: |
         wget https://github.com/allure-framework/allure2/releases/download/2.22.2/allure-2.22.2.zip
         unzip allure-2.22.2.zip
-
-        # Add to PATH
         echo "ALLURE_HOME=$PWD/allure-2.22.2" >> $GITHUB_ENV
         echo "$PWD/allure-2.22.2/bin" >> $GITHUB_PATH
       shell: bash
 
-    # ───────────────────────────────────────────────────────────────────
     # 7) Generate Allure HTML report
-    # ───────────────────────────────────────────────────────────────────
     - name: Generate Allure Report
       if: always()
       run: |
@@ -94,9 +76,7 @@ jobs:
         zip -r allure-report-${{ matrix.browser }}.zip allure-report
       shell: bash
 
-    # ───────────────────────────────────────────────────────────────────
     # 8) Upload HTML Allure artifact
-    # ───────────────────────────────────────────────────────────────────
     - name: Upload Allure HTML artifact
       if: always()
       uses: actions/upload-artifact@v4
