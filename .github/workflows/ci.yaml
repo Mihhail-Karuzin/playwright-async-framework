@@ -46,7 +46,7 @@ jobs:
         if [ "${{ matrix.browser }}" = "webkit" ] || [ "${{ matrix.browser }}" = "firefox" ]; then
           xvfb-run -a pytest -n auto
         else
-          pytest -n auto --browser-args="--no-sandbox"
+          pytest -n auto
         fi
       shell: bash
 
@@ -83,6 +83,7 @@ jobs:
       with:
         name: allure-report-html-${{ matrix.browser }}
         path: allure-report-${{ matrix.browser }}.zip
+
 
 
 
