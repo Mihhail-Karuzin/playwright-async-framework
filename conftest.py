@@ -2,53 +2,44 @@
 
 import os
 from datetime import datetime
-
 import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
-from config.settings import Settings
+from config.settings import Settings  # твои настройки, HEADLESS = True/False
 
 
 @pytest_asyncio.fixture
 async def page(request):
     """
-    Provide a Playwright Page object for tests.
-    Supports browser as string or list (GitHub Actions matrix passes it as ['chromium']).
-    Headless mode is enforced for CI.
+    Фикстура для Playwright Page.
+    Браузер запускается headless по умолчанию.
     """
-
-    # Получаем браузер из pytest
-    browser_option = request.config.getoption("browser")
+    browser_option = request.config.getoption("browser") or "chromium"
     if isinstance(browser_option, (list, tuple)):
         browser_name = browser_option[0]
     else:
         browser_name = browser_option
 
-    # Headless из Settings или переменной окружения
-    headless_env = os.getenv("HEADLESS", str(Settings.HEADLESS)).lower() == "true"
-
     async with async_playwright() as p:
         if browser_name.lower() == "chromium":
-            browser = await p.chromium.launch(headless=headless_env)
+            browser = await p.chromium.launch(headless=Settings.HEADLESS)
         elif browser_name.lower() == "firefox":
-            browser = await p.firefox.launch(headless=headless_env)
+            browser = await p.firefox.launch(headless=Settings.HEADLESS)
         elif browser_name.lower() == "webkit":
-            browser = await p.webkit.launch(headless=headless_env)
+            browser = await p.webkit.launch(headless=Settings.HEADLESS)
         else:
             raise ValueError(f"Unsupported browser: {browser_name}")
 
         context = await browser.new_context()
         page_obj = await context.new_page()
-
         yield page_obj
-
         await browser.close()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    Take a screenshot on test failure.
+    Скриншоты при падении тестов.
     """
     outcome = yield
     rep = outcome.get_result()
