@@ -51,11 +51,12 @@ jobs:
       env:
         PLAYWRIGHT_HEADLESS: true  # все браузеры по умолчанию headless
       run: |
-        if [ "${{ matrix.browser }}" = "webkit" ]; then
-          # WebKit может падать в CI даже в headless, используем xvfb
+        if [ "${{ matrix.browser }}" = "webkit" ] || [ "${{ matrix.browser }}" = "firefox" ]; then
+          # WebKit и Firefox могут падать в CI даже в headless, используем xvfb
           xvfb-run -a pytest -n auto --browser=${{ matrix.browser }}
         else
-          pytest -n auto --browser=${{ matrix.browser }}
+          # Chromium стабильно в headless + отключаем sandbox для CI
+          pytest -n auto --browser=${{ matrix.browser }} -- --browser-args="--no-sandbox"
         fi
       shell: bash
 
