@@ -1,0 +1,7 @@
+2026-01-05 15:32:37,125 | INFO | LoginPage | Navigating to URL: https://www.saucedemo.com
+2026-01-05 15:32:37,766 | INFO | LoginPage | Filling input with text: standard_user
+2026-01-05 15:32:37,766 | INFO | LoginPage | Waiting for locator to be visible
+2026-01-05 15:32:37,864 | INFO | LoginPage | Filling input with text: secret_sauce
+2026-01-05 15:32:37,865 | INFO | LoginPage | Waiting for locator to be visible
+2026-01-05 15:32:37,892 | INFO | LoginPage | Clicking on element
+2026-01-05 15:32:37,892 | INFO | LoginPage | Waiting for locator to be visible
