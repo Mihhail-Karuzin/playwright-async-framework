@@ -16,17 +16,17 @@ jobs:
 
     steps:
 
-    # --- 1) Checkout code ---
+    # ─── 1) Checkout code ─────────────────────────────────────────────────
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # --- 2) Set up Python ---
+    # ─── 2) Set up Python ─────────────────────────────────────────────────
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
 
-    # --- 3) Install dependencies & Playwright browsers ---
+    # ─── 3) Install dependencies & Playwright browsers ─────────────────────
     - name: Install dependencies + Playwright browsers
       run: |
         python -m pip install --upgrade pip
@@ -34,19 +34,20 @@ jobs:
         pip install pytest-playwright pytest-xdist allure-pytest
         pip install playwright
 
-        # 📌 Important: install browsers for CI
+        # 📌 Install all browsers for Playwright
         python -m playwright install --with-deps
       shell: bash
 
-    # --- 4) Run tests ---
+    # ─── 4) Run tests headless ─────────────────────────────────────────────
     - name: Run tests
       env:
-        PW_HEADLESS: 1
+        PLAYWRIGHT_HEADLESS: true
+        PLAYWRIGHT_BROWSERS_PATH: '0'
       run: |
         pytest -n auto --browser=${{ matrix.browser }}
       shell: bash
 
-    # --- 5) Upload Allure raw results ---
+    # ─── 5) Upload raw Allure results ─────────────────────────────────────
     - name: Upload Allure Results
       if: always()
       uses: actions/upload-artifact@v4
@@ -54,20 +55,19 @@ jobs:
         name: allure-results-${{ matrix.browser }}
         path: artifacts/allure-results/
 
-    # --- 6) Install Allure CLI manually ---
+    # ─── 6) Install Allure CLI manually ────────────────────────────────────
     - name: Install Allure CLI
       if: always()
       run: |
         wget https://github.com/allure-framework/allure2/releases/download/2.22.2/allure-2.22.2.zip
-        unzip allure-2.22.2.zip -d allure
-        chmod +x allure/bin/allure
+        unzip allure-2.22.2.zip
 
-        # Add allure to PATH
-        echo "ALLURE_HOME=$PWD/allure" >> $GITHUB_ENV
-        echo "$PWD/allure/bin" >> $GITHUB_PATH
+        # Add Allure CLI path
+        echo "ALLURE_HOME=$PWD/allure-2.22.2" >> $GITHUB_ENV
+        echo "$PWD/allure-2.22.2/bin" >> $GITHUB_PATH
       shell: bash
 
-    # --- 7) Generate Allure HTML report ---
+    # ─── 7) Generate Allure HTML report ────────────────────────────────────
     - name: Generate Allure Report
       if: always()
       run: |
@@ -75,13 +75,14 @@ jobs:
         zip -r allure-report-${{ matrix.browser }}.zip allure-report
       shell: bash
 
-    # --- 8) Upload HTML report as artifact ---
+    # ─── 8) Upload Allure HTML artifact ───────────────────────────────────
     - name: Upload Allure HTML artifact
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: allure-report-html-${{ matrix.browser }}
         path: allure-report-${{ matrix.browser }}.zip
+
 
 
 
