@@ -118,23 +118,14 @@ jobs:
         browser: [ chromium, firefox, webkit ]
 
     steps:
-      # ───────────────────────────────────────────────────────────────────
-      # 1) Checkout code
-      # ───────────────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # ───────────────────────────────────────────────────────────────────
-      # 2) Setup Python
-      # ───────────────────────────────────────────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      # ───────────────────────────────────────────────────────────────────
-      # 3) Install dependencies and Playwright browsers
-      # ───────────────────────────────────────────────────────────────────
       - name: Install dependencies + Playwright browsers
         run: |
           python -m pip install --upgrade pip
@@ -144,21 +135,13 @@ jobs:
           python -m playwright install --with-deps
         shell: bash
 
-      # ───────────────────────────────────────────────────────────────────
-      # 4) Run tests in headless mode with proper args
-      # ───────────────────────────────────────────────────────────────────
       - name: Run tests
         env:
           PLAYWRIGHT_HEADLESS: true
-          # Для Firefox на CI: отключаем sandbox
-          FIREFOX_ARGS: "--no-sandbox"
         run: |
           pytest --browser=${{ matrix.browser }} --alluredir=artifacts/allure-results
         shell: bash
 
-      # ───────────────────────────────────────────────────────────────────
-      # 5) Upload raw Allure results
-      # ───────────────────────────────────────────────────────────────────
       - name: Upload Allure Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -166,9 +149,6 @@ jobs:
           name: allure-results-${{ matrix.browser }}
           path: artifacts/allure-results/
 
-      # ───────────────────────────────────────────────────────────────────
-      # 6) Install Allure CLI
-      # ───────────────────────────────────────────────────────────────────
       - name: Install Allure CLI
         if: always()
         run: |
@@ -178,9 +158,6 @@ jobs:
           echo "$PWD/allure-2.22.2/bin" >> $GITHUB_PATH
         shell: bash
 
-      # ───────────────────────────────────────────────────────────────────
-      # 7) Generate Allure HTML report
-      # ───────────────────────────────────────────────────────────────────
       - name: Generate Allure Report
         if: always()
         run: |
@@ -188,15 +165,13 @@ jobs:
           zip -r allure-report-${{ matrix.browser }}.zip allure-report
         shell: bash
 
-      # ───────────────────────────────────────────────────────────────────
-      # 8) Upload HTML Allure artifact
-      # ───────────────────────────────────────────────────────────────────
       - name: Upload Allure HTML artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report-html-${{ matrix.browser }}
           path: allure-report-${{ matrix.browser }}.zip
+
 
 
 
