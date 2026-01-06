@@ -14,3 +14,6 @@ class Settings:
     # (Add more global settings if needed)
 
 
+#config/settings.py
+
+

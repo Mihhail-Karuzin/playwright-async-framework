@@ -2,25 +2,33 @@
 
 import os
 from datetime import datetime
+
 import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
-from config.settings import Settings  # твои настройки, HEADLESS = True/False
+from config.settings import Settings
 
 
 @pytest_asyncio.fixture
 async def page(request):
     """
-    Фикстура для Playwright Page.
-    Браузер запускается headless по умолчанию.
+    Provide a Playwright Page object for tests.
+    Handles browser_name as list or string (GitHub Actions passes it as ['chromium']).
     """
-    browser_option = request.config.getoption("browser") or "chromium"
+
+    # Получаем опцию browser из pytest-playwright
+    browser_option = request.config.getoption("browser")
+
+    # Если это список, берем первый элемент
     if isinstance(browser_option, (list, tuple)):
         browser_name = browser_option[0]
     else:
         browser_name = browser_option
 
     async with async_playwright() as p:
+        browser = None
+
+        # Запуск нужного браузера
         if browser_name.lower() == "chromium":
             browser = await p.chromium.launch(headless=Settings.HEADLESS)
         elif browser_name.lower() == "firefox":
@@ -32,14 +40,16 @@ async def page(request):
 
         context = await browser.new_context()
         page_obj = await context.new_page()
+
         yield page_obj
+
         await browser.close()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    Скриншоты при падении тестов.
+    Take a screenshot if a test fails.
     """
     outcome = yield
     rep = outcome.get_result()
@@ -56,6 +66,7 @@ def pytest_runtest_makereport(item, call):
             import asyncio
             loop = asyncio.get_event_loop()
             loop.run_until_complete(page.screenshot(path=screenshot_file))
+
 
 
 
