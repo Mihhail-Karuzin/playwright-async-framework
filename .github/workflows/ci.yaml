@@ -40,7 +40,7 @@ jobs:
         pip install pytest-playwright pytest-xdist allure-pytest
         pip install playwright
 
-        # 📌 THIS LINE installs all browsers in CI
+        # 📌 Install all Playwright browsers globally in site-packages
         python -m playwright install --with-deps
       shell: bash
 
@@ -50,7 +50,6 @@ jobs:
     - name: Run tests
       env:
         PLAYWRIGHT_HEADLESS: true
-        PLAYWRIGHT_BROWSERS_PATH: '0'
       run: |
         pytest -n auto --browser=${{ matrix.browser }}
       shell: bash
@@ -98,6 +97,7 @@ jobs:
       with:
         name: allure-report-html-${{ matrix.browser }}
         path: allure-report-${{ matrix.browser }}.zip
+
 
 
 
