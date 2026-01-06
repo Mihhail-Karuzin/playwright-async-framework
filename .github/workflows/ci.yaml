@@ -145,11 +145,13 @@ jobs:
         shell: bash
 
       # ───────────────────────────────────────────────────────────────────
-      # 4) Run tests in headless mode
+      # 4) Run tests in headless mode with proper args
       # ───────────────────────────────────────────────────────────────────
       - name: Run tests
         env:
           PLAYWRIGHT_HEADLESS: true
+          # Для Firefox на CI: отключаем sandbox
+          FIREFOX_ARGS: "--no-sandbox"
         run: |
           pytest --browser=${{ matrix.browser }} --alluredir=artifacts/allure-results
         shell: bash
@@ -195,6 +197,7 @@ jobs:
         with:
           name: allure-report-html-${{ matrix.browser }}
           path: allure-report-${{ matrix.browser }}.zip
+
 
 
 
