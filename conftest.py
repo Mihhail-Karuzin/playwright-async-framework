@@ -2,6 +2,7 @@
 
 import os
 from datetime import datetime
+
 import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
@@ -12,10 +13,10 @@ from config.settings import Settings
 async def page(request):
     """
     Provide a Playwright Page object for tests.
-    Handles browser_name as list or string.
+    Handles browser_name as list or string (GitHub Actions may pass it as ['chromium']).
     """
 
-    # Получаем опцию browser из pytest
+    # Получаем опцию browser из pytest-playwright, дефолт "chromium"
     browser_option = getattr(request.config.option, "browser", "chromium")
 
     # Если это список, берем первый элемент
@@ -25,11 +26,8 @@ async def page(request):
         browser_name = browser_option
 
     async with async_playwright() as p:
-        browser = None
-
-        # Запуск нужного браузера
         if browser_name.lower() == "chromium":
-            browser = await p.chromium.launch(headless=Settings.HEADLESS)
+            browser = await p.chromium.launch(headless=Settings.HEADLESS, args=["--no-sandbox"])
         elif browser_name.lower() == "firefox":
             browser = await p.firefox.launch(headless=Settings.HEADLESS)
         elif browser_name.lower() == "webkit":
@@ -65,6 +63,9 @@ def pytest_runtest_makereport(item, call):
             import asyncio
             loop = asyncio.get_event_loop()
             loop.run_until_complete(page.screenshot(path=screenshot_file))
+
+
+
 
 
 

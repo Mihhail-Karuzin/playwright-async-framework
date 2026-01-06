@@ -1,10 +1,10 @@
-name: Playwright Tests
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -12,29 +12,37 @@ jobs:
     strategy:
       matrix:
         browser: [chromium, firefox, webkit]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: 3.11
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          npx playwright install --with-deps
+          playwright install
 
       - name: Run tests
         run: |
           pytest tests \
-            --browser=${{ matrix.browser }} \
-            --headless=True \
-            -n auto \
-            --maxfail=1 \
-            --disable-warnings
+            --browser=$BROWSER \
+            --alluredir=artifacts/allure-results \
+            -n auto
+        env:
+          BROWSER: ${{ matrix.browser }}
+
+      - name: Generate Allure Report
+        run: |
+          pip install allure-pytest
+          allure generate artifacts/allure-results --clean -o artifacts/allure-report
+
+
 
 
 
