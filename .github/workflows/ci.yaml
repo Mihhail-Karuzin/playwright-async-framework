@@ -138,6 +138,7 @@ jobs:
       - name: Run tests
         env:
           PLAYWRIGHT_HEADLESS: true
+          CI: true
         run: |
           pytest --browser=${{ matrix.browser }} --alluredir=artifacts/allure-results
         shell: bash

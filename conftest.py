@@ -71,6 +71,8 @@
 
 # conftest.py
 
+# conftest.py
+
 import os
 from datetime import datetime
 
@@ -99,15 +101,18 @@ async def page(request):
     async with async_playwright() as p:
         browser = None
 
+        # Определяем headless режим
+        # На CI принудительно headless
+        headless = True if os.environ.get("CI") else Settings.HEADLESS
+
         # Запуск нужного браузера
         if browser_name.lower() == "chromium":
-            browser = await p.chromium.launch(headless=Settings.HEADLESS)
+            browser = await p.chromium.launch(headless=headless)
         elif browser_name.lower() == "firefox":
-            # Для CI обязательно добавляем --no-sandbox
             args = ["--no-sandbox"] if os.environ.get("CI") else []
-            browser = await p.firefox.launch(headless=Settings.HEADLESS, args=args)
+            browser = await p.firefox.launch(headless=headless, args=args)
         elif browser_name.lower() == "webkit":
-            browser = await p.webkit.launch(headless=Settings.HEADLESS)
+            browser = await p.webkit.launch(headless=headless)
         else:
             raise ValueError(f"Unsupported browser: {browser_name}")
 
@@ -139,6 +144,7 @@ def pytest_runtest_makereport(item, call):
             import asyncio
             loop = asyncio.get_event_loop()
             loop.run_until_complete(page.screenshot(path=screenshot_file))
+
 
 
 
