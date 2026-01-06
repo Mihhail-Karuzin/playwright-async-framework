@@ -40,7 +40,7 @@ jobs:
         pip install pytest-playwright pytest-xdist allure-pytest
         pip install playwright
 
-        # 📌 Install all Playwright browsers globally in site-packages
+        # 📌 Install all Playwright browsers globally
         python -m playwright install --with-deps
       shell: bash
 
@@ -49,7 +49,7 @@ jobs:
     # ───────────────────────────────────────────────────────────────────
     - name: Run tests
       env:
-        PLAYWRIGHT_HEADLESS: true
+        PLAYWRIGHT_HEADLESS: true  # ⬅️ браузеры запускаются headless
       run: |
         pytest -n auto --browser=${{ matrix.browser }}
       shell: bash
