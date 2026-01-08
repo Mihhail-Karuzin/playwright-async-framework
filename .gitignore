@@ -1,7 +1,9 @@
-# Python cache files
+# ======================
+# Python
+# ======================
 __pycache__/
 *.py[cod]
-*$py.class
+.env
 
 # Virtual environments
 .venv/
@@ -9,21 +11,34 @@ venv/
 ENV/
 env/
 
-# Pytest cache
+# ======================
+# Pytest / Test runtime
+# ======================
 .pytest_cache/
 .cache/
 
-# Logs and reports
+# Logs
 *.log
-reports/
+
+# ======================
+# Playwright
+# ======================
+.playwright/
+
+# ======================
+# Artifacts (generated at runtime)
+# ======================
+artifacts/
+allure-results/
+allure-report/
 screenshots/
 
-# IDE / editor files
+# ======================
+# IDE / OS
+# ======================
 .idea/
 .vscode/
 *.iml
-
-# OS files
 .DS_Store
 Thumbs.db
 

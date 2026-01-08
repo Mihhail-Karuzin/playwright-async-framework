@@ -1,1 +1,0 @@
-2026-01-05 15:06:06,279 | INFO | LoginPage | Navigating to URL: https://www.saucedemo.com
