@@ -15,24 +15,40 @@ from allure_commons.types import AttachmentType
 logger = get_logger("pytest")
 
 
-# -------------------------------
-# Browser
-# -------------------------------
+# =====================================================
+# Browser (CI-safe, handles list from pytest-playwright)
+# =====================================================
 @pytest_asyncio.fixture
 async def browser_instance(request):
-    browser_name = request.config.getoption("browser") or "chromium"
+    browser_option = request.config.getoption("browser")
+
+    # 🔒 Normalize browser option (CRITICAL for CI)
+    if not browser_option:
+        browser_name = "chromium"
+    elif isinstance(browser_option, (list, tuple)):
+        browser_name = browser_option[0]
+    else:
+        browser_name = browser_option
 
     async with async_playwright() as p:
         headless = True if os.environ.get("CI") else Settings.HEADLESS
-        browser = await getattr(p, browser_name).launch(headless=headless)
+
+        if browser_name == "chromium":
+            browser = await p.chromium.launch(headless=headless)
+        elif browser_name == "firefox":
+            browser = await p.firefox.launch(headless=headless)
+        elif browser_name == "webkit":
+            browser = await p.webkit.launch(headless=headless)
+        else:
+            raise ValueError(f"Unsupported browser: {browser_name}")
 
         yield browser
         await browser.close()
 
 
-# -------------------------------
-# Context + VIDEO + TRACE (CORRECT)
-# -------------------------------
+# =====================================================
+# Context + VIDEO + TRACE (correct lifecycle)
+# =====================================================
 @pytest_asyncio.fixture
 async def context(request, browser_instance):
     os.makedirs("artifacts/videos", exist_ok=True)
@@ -53,7 +69,7 @@ async def context(request, browser_instance):
 
     rep = getattr(request.node, "rep_call", None)
 
-    # 📦 TRACE — BEFORE close
+    # 📦 TRACE — MUST be stopped BEFORE context.close()
     if rep and rep.failed:
         trace_path = (
             f"artifacts/traces/"
@@ -63,45 +79,51 @@ async def context(request, browser_instance):
     else:
         await context.tracing.stop()
 
-    # 🔚 CLOSE CONTEXT → VIDEO IS FINALIZED HERE
+    # 🔚 CLOSE CONTEXT → video finalized here
     await context.close()
 
-    # 🎥 VIDEO — AFTER close
+    # 🎥 Attach VIDEO + TRACE to Allure (after close)
     if rep and rep.failed:
         try:
-            video_path = request.node.video_path
-            allure.attach.file(
-                video_path,
-                name="Failure Video",
-                attachment_type=AttachmentType.MP4,
-            )
-            allure.attach.file(
-                trace_path,
-                name="Playwright Trace",
-                attachment_type=AttachmentType.ZIP,
-            )
+            video_path = getattr(request.node, "video_path", None)
+            if video_path:
+                allure.attach.file(
+                    video_path,
+                    name="Failure Video",
+                    attachment_type=AttachmentType.MP4,
+                )
+
+            if rep and trace_path:
+                allure.attach.file(
+                    trace_path,
+                    name="Playwright Trace",
+                    attachment_type=AttachmentType.ZIP,
+                )
         except Exception as e:
-            logger.warning(f"Attach failed: {e}")
+            logger.warning(f"Failed to attach video/trace: {e}")
 
 
-# -------------------------------
-# Page
-# -------------------------------
+# =====================================================
+# Page (video path must be saved BEFORE close)
+# =====================================================
 @pytest_asyncio.fixture
 async def page(request, context):
     page = await context.new_page()
     yield page
 
-    # save video path BEFORE page close
+    # 🎥 Save video path BEFORE page is closed
     if page.video:
-        request.node.video_path = await page.video.path()
+        try:
+            request.node.video_path = await page.video.path()
+        except Exception:
+            pass
 
     await page.close()
 
 
-# -------------------------------
-# ALLURE FAST ATTACHMENTS
-# -------------------------------
+# =====================================================
+# Allure fast attachments (SYNC, safe)
+# =====================================================
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
@@ -115,9 +137,11 @@ def pytest_runtest_makereport(item, call):
             if not page:
                 return
 
+            logger.error(f"Test failed: {item.name}")
+
             loop = asyncio.get_event_loop()
 
-            # 📸 Screenshot
+            # 📸 Screenshot (bytes → Allure)
             screenshot = loop.run_until_complete(page.screenshot())
             allure.attach(
                 screenshot,
