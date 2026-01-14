@@ -1,19 +1,3 @@
-# # tests/smoke/test_smoke_setup.py
-#
-# import pytest
-# from core.pages.login_page import LoginPage
-#
-# @pytest.mark.asyncio
-# async def test_smoke_setup(page):
-#     """
-#     Smoke test to ensure browser starts
-#     and the login page loads correctly.
-#     """
-#     login_page = LoginPage(page)
-#     await login_page.open()
-#     assert "saucedemo" in page.url
-
-
 import pytest
 
 from core.pages.login_page import LoginPage
@@ -37,8 +21,16 @@ async def test_smoke_setup(page):
     await login_page.open()
     logger.info("Login page opened")
 
+    await page.wait_for_url("**saucedemo.com**")
+
     current_url = page.url
     logger.info(f"Current URL after open: {current_url}")
 
+    # ✅ NORMAL SMOKE ASSERT (production)
     assert "saucedemo" in current_url
+
+    # ❌ BREAK TEST (use when you need to validate screenshots / allure / traces)
+    # assert "this_will_fail" in current_url
+
     logger.info("Smoke setup test finished successfully")
+
