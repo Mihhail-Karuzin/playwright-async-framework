@@ -25,8 +25,8 @@ class Settings:
     TIMEOUT_MEDIUM = 5_000
     TIMEOUT_LONG = 10_000
 
-    # ⬇️ ОБЯЗАТЕЛЬНО
-    # Используется в BasePage.wait_for_url()
+    # ⬇️ REQUIRED
+    # Used in BasePage.wait_for_url()
     TIMEOUT = TIMEOUT_MEDIUM
 
     # ---- Playwright
