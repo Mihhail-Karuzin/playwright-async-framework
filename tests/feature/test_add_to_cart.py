@@ -20,7 +20,7 @@ async def test_add_item_to_cart(page):
     await inventory_page.open_cart()
 
     cart_page = CartPage(page)
-    count = await cart_page.get_cart_items_count()
+    count = await cart_page.get_items_count()
 
     assert count == 1, "Item was not added to the cart"
 
