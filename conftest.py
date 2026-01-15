@@ -1,3 +1,4 @@
+#
 # import os
 # import asyncio
 # from datetime import datetime
@@ -22,7 +23,7 @@
 # async def browser_instance(request):
 #     browser_option = request.config.getoption("browser")
 #
-#     # 🔒 Normalize browser option (CRITICAL for CI)
+#     # Normalize browser option (CRITICAL for CI)
 #     if not browser_option:
 #         browser_name = "chromium"
 #     elif isinstance(browser_option, (list, tuple)):
@@ -47,17 +48,13 @@
 #
 #
 # # =====================================================
-# # Context + VIDEO + TRACE (correct lifecycle)
+# # Context + Trace lifecycle (NO video)
 # # =====================================================
 # @pytest_asyncio.fixture
 # async def context(request, browser_instance):
-#     os.makedirs("artifacts/videos", exist_ok=True)
 #     os.makedirs("artifacts/traces", exist_ok=True)
 #
-#     context = await browser_instance.new_context(
-#         record_video_dir="artifacts/videos",
-#         record_video_size={"width": 1280, "height": 720},
-#     )
+#     context = await browser_instance.new_context()
 #
 #     await context.tracing.start(
 #         screenshots=True,
@@ -69,60 +66,37 @@
 #
 #     rep = getattr(request.node, "rep_call", None)
 #
-#     # 📦 TRACE — MUST be stopped BEFORE context.close()
 #     if rep and rep.failed:
 #         trace_path = (
 #             f"artifacts/traces/"
 #             f"{request.node.name}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.zip"
 #         )
 #         await context.tracing.stop(path=trace_path)
+#
+#         # Attach trace to Allure
+#         allure.attach.file(
+#             trace_path,
+#             name="Playwright Trace",
+#             attachment_type=AttachmentType.ZIP,
+#         )
 #     else:
 #         await context.tracing.stop()
 #
-#     # 🔚 CLOSE CONTEXT → video finalized here
 #     await context.close()
 #
-#     # 🎥 Attach VIDEO + TRACE to Allure (after close)
-#     if rep and rep.failed:
-#         try:
-#             video_path = getattr(request.node, "video_path", None)
-#             if video_path:
-#                 allure.attach.file(
-#                     video_path,
-#                     name="Failure Video",
-#                     attachment_type=AttachmentType.MP4,
-#                 )
-#
-#             if rep and trace_path:
-#                 allure.attach.file(
-#                     trace_path,
-#                     name="Playwright Trace",
-#                     attachment_type=AttachmentType.ZIP,
-#                 )
-#         except Exception as e:
-#             logger.warning(f"Failed to attach video/trace: {e}")
-#
 #
 # # =====================================================
-# # Page (video path must be saved BEFORE close)
+# # Page
 # # =====================================================
 # @pytest_asyncio.fixture
-# async def page(request, context):
+# async def page(context):
 #     page = await context.new_page()
 #     yield page
-#
-#     # 🎥 Save video path BEFORE page is closed
-#     if page.video:
-#         try:
-#             request.node.video_path = await page.video.path()
-#         except Exception:
-#             pass
-#
 #     await page.close()
 #
 #
 # # =====================================================
-# # Allure fast attachments (SYNC, safe)
+# # Allure attachments (FAST + SAFE)
 # # =====================================================
 # @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 # def pytest_runtest_makereport(item, call):
@@ -141,7 +115,7 @@
 #
 #             loop = asyncio.get_event_loop()
 #
-#             # 📸 Screenshot (bytes → Allure)
+#             # Screenshot
 #             screenshot = loop.run_until_complete(page.screenshot())
 #             allure.attach(
 #                 screenshot,
@@ -149,19 +123,20 @@
 #                 attachment_type=AttachmentType.PNG,
 #             )
 #
-#             # 🌐 URL
+#             # Current URL
 #             allure.attach(
 #                 page.url,
 #                 name="Current URL",
 #                 attachment_type=AttachmentType.URI_LIST,
 #             )
 #
-#             # ❌ Error
+#             # Error details
 #             allure.attach(
 #                 str(rep.longrepr),
 #                 name="Error details",
 #                 attachment_type=AttachmentType.TEXT,
 #             )
+#
 
 
 
@@ -241,7 +216,6 @@ async def context(request, browser_instance):
         )
         await context.tracing.stop(path=trace_path)
 
-        # Attach trace to Allure
         allure.attach.file(
             trace_path,
             name="Playwright Trace",
@@ -283,7 +257,7 @@ def pytest_runtest_makereport(item, call):
 
             loop = asyncio.get_event_loop()
 
-            # Screenshot
+            # 📸 Screenshot
             screenshot = loop.run_until_complete(page.screenshot())
             allure.attach(
                 screenshot,
@@ -291,14 +265,14 @@ def pytest_runtest_makereport(item, call):
                 attachment_type=AttachmentType.PNG,
             )
 
-            # Current URL
+            # 🌐 Current URL
             allure.attach(
                 page.url,
                 name="Current URL",
                 attachment_type=AttachmentType.URI_LIST,
             )
 
-            # Error details
+            # ❌ Error details
             allure.attach(
                 str(rep.longrepr),
                 name="Error details",
@@ -306,8 +280,43 @@ def pytest_runtest_makereport(item, call):
             )
 
 
+# =====================================================
+# AUTH FIXTURES (Phase 1.5.1)
+# =====================================================
+@pytest_asyncio.fixture
+async def login_as(page):
+    """
+    Factory fixture for logging in as a specific user.
+
+    Usage:
+        await login_as(username, password)
+    """
+    from core.pages.login_page import LoginPage
+
+    async def _login(username: str, password: str):
+        login_page = LoginPage(page)
+        await login_page.open()
+        await login_page.login(username, password)
+        return page
+
+    return _login
 
 
+@pytest_asyncio.fixture
+async def logged_in_page(page):
+    """
+    Logged-in page using default valid user.
+    """
+    from core.pages.login_page import LoginPage
+
+    login_page = LoginPage(page)
+    await login_page.open()
+    await login_page.login(
+        Settings.VALID_USERNAME,
+        Settings.VALID_PASSWORD,
+    )
+
+    return page
 
 
 
