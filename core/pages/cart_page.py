@@ -9,6 +9,8 @@ class CartPage(BasePage):
         self.cart_items: Locator = page.locator(".cart_item")
         self.cart_item_names: Locator = page.locator(".inventory_item_name")
         self.remove_buttons: Locator = page.locator("button[data-test^='remove']")
+
+        self.checkout_button: Locator = page.locator("[data-test='checkout']")
         self.continue_shopping_button: Locator = page.locator(
             "[data-test='continue-shopping']"
         )
@@ -38,6 +40,10 @@ class CartPage(BasePage):
             await self.remove_buttons.nth(0).click()
 
     async def is_empty(self) -> bool:
-        await self.wait_for_url("/cart.html")
+        await self.wait_for_cart_page()
         return await self.cart_items.count() == 0
+
+    async def click_checkout(self):
+        await self.wait_for_cart_page()
+        await self.click(self.checkout_button)
 
