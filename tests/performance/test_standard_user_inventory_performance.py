@@ -8,43 +8,36 @@ from tests.test_data import TestData
 
 
 @pytest.mark.asyncio
-@pytest.mark.security
 @pytest.mark.performance
-@pytest.mark.xfail(
-    reason=(
-        "Known issue: glitch_user causes significant UI delays. "
-        "Inventory page load time exceeds acceptable SLA."
-    ),
-    strict=False,
-)
-@allure.severity(allure.severity_level.MINOR)
+@allure.severity(allure.severity_level.CRITICAL)
 @allure.feature("Performance")
-@allure.story("Glitch user inventory load delay")
-async def test_glitch_user_inventory_load_time(page):
+@allure.story("Standard user inventory load baseline")
+async def test_standard_user_inventory_load_time(page):
     """
-    Performance / Quality test (expected defect).
+    Performance baseline test.
 
     Expected behavior:
-    - Inventory page should load within acceptable SLA (<= 3 seconds).
+    - Inventory page for standard_user must load
+      within acceptable SLA (<= 3 seconds).
 
-    Actual behavior (SauceDemo):
-    - glitch_user experiences significant delays.
+    This test serves as a baseline to compare against
+    performance_glitch_user behavior.
     """
 
     SLA_SECONDS = 3.0
 
     # =========================
-    # Login as glitch_user
+    # Login as standard_user
     # =========================
-    with allure.step("Login as glitch_user"):
+    with allure.step("Login as standard_user"):
         login_page = LoginPage(page)
         await login_page.open()
 
         start_time = time.perf_counter()
 
         await login_page.login(
-            TestData.PERFORMANCE_GLITCH_USER,
-            TestData.PASSWORD,
+            TestData.VALID_USERNAME,
+            TestData.VALID_PASSWORD,
         )
 
     # =========================
@@ -59,7 +52,7 @@ async def test_glitch_user_inventory_load_time(page):
 
         allure.attach(
             f"{load_time:.2f} seconds",
-            name="Inventory load time",
+            name="Inventory load time (standard_user)",
             attachment_type=allure.attachment_type.TEXT,
         )
 
