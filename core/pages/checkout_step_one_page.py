@@ -13,6 +13,7 @@ class CheckoutStepOnePage(BasePage):
         self.last_name_input: Locator = page.locator("#last-name")
         self.postal_code_input: Locator = page.locator("#postal-code")
         self.continue_button: Locator = page.locator("#continue")
+        self.error_message: Locator = page.locator("[data-test='error']")
 
     async def fill_information(
         self,
@@ -29,4 +30,12 @@ class CheckoutStepOnePage(BasePage):
         await self.postal_code_input.fill(postal_code)
 
         await self.click(self.continue_button)
+
+    async def get_error_text(self) -> str:
+        """
+        Returns validation error text on checkout step one
+        """
+        await self.wait_for_url("/checkout-step-one.html")
+        await self.wait_for_locator(self.error_message)
+        return (await self.error_message.inner_text()).strip()
 
