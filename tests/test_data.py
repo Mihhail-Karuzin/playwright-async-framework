@@ -12,6 +12,9 @@ class TestData:
     PROBLEM_USER = "problem_user"
     PERFORMANCE_GLITCH_USER = "performance_glitch_user"
 
+    # =========================
+    # Common password
+    # =========================
     PASSWORD = "secret_sauce"
 
     # =========================
