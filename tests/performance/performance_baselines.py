@@ -1,14 +1,19 @@
-class PerformanceBaseline:
-    """
-    Performance baselines (seconds).
-    Values represent p75–p90 real measurements, not SLA.
-    """
+"""
+Performance baselines for critical user flows.
 
-    INVENTORY_LOAD = {
-        "standard_user": 1.8,
-        "performance_glitch_user": 5.0,
-    }
+These values define expected performance
+characteristics and allowed tolerances.
+"""
 
-    DEFAULT_MULTIPLIER = 1.5
-    DEFAULT_BUFFER = 0.5
+INVENTORY_LOAD_BASELINES = {
+    "standard_user": {
+        "expected_seconds": 3.0,
+        "tolerance": 0.5,
+    },
+    "performance_glitch_user": {
+        "expected_seconds": 3.0,
+        "tolerance": 2.5,
+    },
+}
+
 

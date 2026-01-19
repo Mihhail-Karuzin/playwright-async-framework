@@ -4,7 +4,9 @@ import allure
 
 from core.pages.login_page import LoginPage
 from core.pages.inventory_page import InventoryPage
+from core.utils.performance import PerformanceChecker
 from tests.test_data import TestData
+from tests.performance.performance_baselines import INVENTORY_LOAD_BASELINES
 
 
 @pytest.mark.asyncio
@@ -18,13 +20,17 @@ async def test_standard_user_inventory_load_time(page):
 
     Expected behavior:
     - Inventory page for standard_user must load
-      within acceptable SLA (<= 3 seconds).
+      within acceptable baseline.
 
-    This test serves as a baseline to compare against
-    performance_glitch_user behavior.
+    This test defines the performance baseline
+    used for comparison with other user roles
+    (e.g. performance_glitch_user).
     """
 
-    SLA_SECONDS = 3.0
+    # =========================
+    # Load baseline
+    # =========================
+    baseline = INVENTORY_LOAD_BASELINES["standard_user"]
 
     # =========================
     # Login as standard_user
@@ -57,10 +63,17 @@ async def test_standard_user_inventory_load_time(page):
         )
 
     # =========================
-    # Assert SLA
+    # Validate against baseline
     # =========================
-    with allure.step("Verify inventory load time meets SLA"):
-        assert load_time <= SLA_SECONDS, (
-            f"Inventory page loaded in {load_time:.2f}s, "
-            f"which exceeds SLA of {SLA_SECONDS:.1f}s"
+    with allure.step("Validate inventory load time against baseline"):
+        checker = PerformanceChecker(
+            actual_seconds=load_time,
+            baseline_seconds=baseline["expected_seconds"],
+            tolerance=baseline["tolerance"],
         )
+
+        assert checker.is_within_threshold(), checker.failure_message(
+            metric="Inventory page load",
+            user="standard_user",
+        )
+

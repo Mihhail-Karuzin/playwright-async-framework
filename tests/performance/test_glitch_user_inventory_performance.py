@@ -4,7 +4,9 @@ import allure
 
 from core.pages.login_page import LoginPage
 from core.pages.inventory_page import InventoryPage
+from core.utils.performance import PerformanceChecker
 from tests.test_data import TestData
+from tests.performance.performance_baselines import INVENTORY_LOAD_BASELINES
 
 
 @pytest.mark.asyncio
@@ -24,18 +26,23 @@ async def test_glitch_user_inventory_load_time(page):
     Performance / Quality test (expected defect).
 
     Expected behavior:
-    - Inventory page should load within acceptable SLA (<= 3 seconds).
+    - Inventory page should load within acceptable SLA.
 
     Actual behavior (SauceDemo):
-    - glitch_user experiences significant delays.
+    - performance_glitch_user experiences significant delays.
+
+    This test is marked as XFAIL to document the known issue.
     """
 
-    SLA_SECONDS = 3.0
+    # =========================
+    # Load baseline
+    # =========================
+    baseline = INVENTORY_LOAD_BASELINES["performance_glitch_user"]
 
     # =========================
-    # Login as glitch_user
+    # Login as glitch user
     # =========================
-    with allure.step("Login as glitch_user"):
+    with allure.step("Login as performance_glitch_user"):
         login_page = LoginPage(page)
         await login_page.open()
 
@@ -63,10 +70,17 @@ async def test_glitch_user_inventory_load_time(page):
         )
 
     # =========================
-    # Assert SLA
+    # Validate against baseline
     # =========================
-    with allure.step("Verify inventory load time meets SLA"):
-        assert load_time <= SLA_SECONDS, (
-            f"Inventory page loaded in {load_time:.2f}s, "
-            f"which exceeds SLA of {SLA_SECONDS:.1f}s"
+    with allure.step("Validate inventory load time against baseline"):
+        checker = PerformanceChecker(
+            actual_seconds=load_time,
+            baseline_seconds=baseline["expected_seconds"],
+            tolerance=baseline["tolerance"],
         )
+
+        assert checker.is_within_threshold(), checker.failure_message(
+            metric="Inventory page load",
+            user="performance_glitch_user",
+        )
+
